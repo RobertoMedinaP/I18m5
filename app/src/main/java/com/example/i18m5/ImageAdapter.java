@@ -3,6 +3,7 @@ package com.example.i18m5;
 import android.content.ClipData;
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,56 +21,79 @@ import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
 
-    private List<ClipData.Item>itemList;
+    //lista de item
+    private List<ClipData.Item> itemList;
+    //listener de la interfaz
+    private PasarElementos listener;
 
+    //constructor del adapter con la lista y el listener de la interfaz
 
-    public ImageAdapter(Context context, List<ClipData.Item>itemList){
-        this.itemList=itemList;
+    public ImageAdapter(List<ClipData.Item> itemList, PasarElementos listener) {
+        this.itemList = itemList;
+        this.listener = listener;
     }
 
+    //inflado desde data_list_item.xml
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //se infla la vista del data list item
-        DataListItemBinding binding= DataListItemBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        DataListItemBinding binding = DataListItemBinding.inflate(inflater, parent, false);
         return new ImageViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-
-        ClipData.Item descripcion= itemList.get(position);
-        holder.textView.setText(descripcion.getText().toString());
-        //Se carga bien la imagen
-        Glide.with(holder.imageView).load(descripcion.getHtmlText()).into(holder.imageView);
-
-       //TODO ordenar el layout se ve muy grande y el textview muy chico
-
-
-
-        //al menos funciona
-        //TODO: que es clipdata?
-
-
+        //se obtiene la posicion de cada item
+        ClipData.Item item = itemList.get(position);
+        holder.bind(item);
     }
 
     @Override
     public int getItemCount() {
+        //devuelve el tamaño de la lista
         return itemList.size();
     }
 
-    //2 se crea el viewholder
-    public static class ImageViewHolder extends RecyclerView.ViewHolder{
-        public ImageView imageView;
+    public class ImageViewHolder extends RecyclerView.ViewHolder {
+        private DataListItemBinding binding;
 
-        public TextView textView;
-        //aca buscar bien el binding del xml donde se puso la lista
-        public ImageViewHolder(DataListItemBinding binding){
+        public ImageViewHolder(@NonNull DataListItemBinding binding) {
             super(binding.getRoot());
-            imageView=binding.imageView;
-            textView=binding.textView;
+            this.binding = binding;
+
+            //el escuchador de los items
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //se obtiene la posicio
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        ClipData.Item item = itemList.get(position);
+                        //el texto del item
+                        String texto = item.getText().toString();
+                        //la url desde la misma lista
+                        String urlImagen = item.getHtmlText();
+                        //el listener de la interfaz
+                        listener.pasarelementos(texto, urlImagen);
+                    }
+                }
+            });
+        }
+
+        public void bind(ClipData.Item item) {
+
+            //a cada textview le ponemos su texto
+            binding.textView.setText(item.getText());
+            //con Glide cargamos la imagen desde a url
+            Glide.with(binding.imageView).load(item.getHtmlText()).into(binding.imageView);
         }
     }
 
+    public interface PasarElementos {
+        //la interfaz que va a devolver el texto y la web
+        void pasarelementos(String text, String htmlText);
+    }
 }
 //TODO enviar imagen y texto del primer al segundo fragmento y setearlos en los correspondientes contenedores;

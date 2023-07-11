@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -17,10 +19,10 @@ import com.example.i18m5.databinding.FragmentFirstBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FirstFragment extends Fragment {
+public class FirstFragment extends Fragment implements ImageAdapter.PasarElementos {
 
     private FragmentFirstBinding binding;
-
+    //la lista de elementos dentro del metodo que devuelve la lista
     private List<ClipData.Item> returnItemList() {
         List<ClipData.Item> listItem = new ArrayList<>();
         ClipData.Item item01 = new ClipData.Item("Zhuo Cheng you", "https://unsplash.com/photos/UBvtBr_FmrY/download?force=true&w=6 40");
@@ -64,11 +66,15 @@ public class FirstFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ImageAdapter adapter=new ImageAdapter(getContext(),returnItemList());
+        //se hace un nuevo adapter segun el constructor, se setea y se pone que se muestre como
+        //linear layout
+
+        ImageAdapter adapter=new ImageAdapter(returnItemList(), this);
         binding.recyclerview1.setAdapter(adapter);
         binding.recyclerview1.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerview1.setHasFixedSize(true);
 
+        //TODO eliminar este boton, no esta haciendo nada util
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -84,4 +90,15 @@ public class FirstFragment extends Fragment {
         binding = null;
     }
 
+    //La interfaz que envia oomo string lo que necesito
+    @Override
+    public void pasarelementos(String text, String htmlText) {
+        Bundle bundle=new Bundle();
+        bundle.putString("texto",text);
+        bundle.putString("urlimagen",htmlText);
+        NavController navController= Navigation.findNavController(getActivity(),R.id.recyclerview1);
+        navController.navigate(R.id.action_FirstFragment_to_SecondFragment,
+                bundle);
+
+    }
 }
